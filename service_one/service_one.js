@@ -1,9 +1,9 @@
 const { Client, LocalAuth } = require('whatsapp-web.js');
 const qrcode = require('qrcode-terminal');
 
-let client;
+let client = false;
 
-function initializeClientOne() {
+async function initializeClientOne() {
 
     client = new Client({
         puppeteer: {
@@ -22,25 +22,58 @@ function initializeClientOne() {
         console.log('Client successfully authenticated');
     });
 
+    client.on('auth_failure', msg => {
+        // Fired if session restore was unsuccessful
+        console.error('AUTHENTICATION FAILURE', msg);
+    });
+    
+
     client.on('ready', () => {
         console.log('Client is ready!');
     });
 
     client.on('qr', qr => {
-        console.log('QR code received, please scan:');
         qrcode.generate(qr, { small: true });
     });
-
-
-    client.on('disconnected', (reason) => {
-        console.log('Client was logged out', reason);
-        initializeClientOne();
+    
+    client.on('disconnected', async (reason) => {
+        await client.destroy() .then(response => {
+            console.log('Client was logged out', reason);
+        })
+        .catch(error => {
+            console.error(`Failed to destory client: ${error.message}`);
+        });
+        await initializeClientOne();
     });
 
 }
 
+function startAuthenticationOne(req, res) {
+    console.log(client)
+    if (!client) {
+        initializeClientOne();
+        client.initialize();
+        console.log('Please check your console for the QR code service one to scan.');
+        res.send('Please check your console for the QR code service one to scan.');
+    } else {
+        console.log('Client is already initialized');
+        res.send('Client already initialized. No need to generate QR code again.');
+    }
+}
 
-function sendWaServiceOne(req, res) {
+async function getClientInfoOne(req, res) {
+    console.log(client.info)
+    if (!client.info) {
+        console.log('Not login service one');
+        res.send('Not login service one');
+    } else {
+        console.log('Already login service one.');
+        res.send('Already login service one.');
+    }
+}
+
+
+async function sendWaServiceOne(req, res) {
     const { no_hp, isi_pesan, fileOrImageUrl } = req.body;
 
     let resMsg = '';
@@ -78,7 +111,7 @@ function sendWaServiceOne(req, res) {
         return res.status(500).send('WhatsApp client is not initialized');
     }
 
-    client.sendMessage(chatId, isi_pesan)
+   await client.sendMessage(chatId, isi_pesan)
         .then(response => {
             res.send(`Message sent successfully to ${no_hp}`);
             console.log(`Message sent successfully to ${no_hp}`);
@@ -87,20 +120,6 @@ function sendWaServiceOne(req, res) {
             res.status(500).send(`Failed to send message: ${error.message}`);
             console.error(`Failed to send message: ${error.message}`);
         });
-}
-
-function getClientInfoOne() {
-    return client ? client.info : null;
-}
-
-// Function to start authentication process
-function startAuthenticationOne() {
-    if (!client) {
-        initializeClientOne();
-        client.initialize();
-    } else {
-        console.log('Client is already initialized');
-    }
 }
 
 module.exports = {
