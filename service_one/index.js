@@ -1,6 +1,5 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-const qrcode = require('qrcode-terminal');
 const {startAuthenticationOne, getClientInfoOne, sendWaServiceOne, getReconnecting} = require('./service_one');
 const logger = require('../config/logger');//log
 
@@ -10,13 +9,13 @@ const app = express();
 app.use(bodyParser.json());
 
 // Endpoint cek status login
-app.get('/status-service-one', getClientInfoOne);
+app.get('/one/status-service', getClientInfoOne);
 // Endpoint untuk menghasilkan QR code
-app.get('/generate-qr-service-one', startAuthenticationOne);
+app.get('/one/generate-qr-service', startAuthenticationOne);
 // Endpoint untuk kirim pesan pada service one
-app.post('/send-service-one', sendWaServiceOne)
+app.post('/one/send-service', sendWaServiceOne)
 //reconnecting wa
-app.get('/recon-service-one', getReconnecting)
+app.get('/one/recon-service', getReconnecting)
 
 const PORT = process.env.PORT || 3001;
 

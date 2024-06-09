@@ -4,7 +4,7 @@ const logger = require('../config/logger');//log
 
 let client = false;
 
-async function initializeClientOne(authen = false) {
+async function initializeClienttwo(authen = false) {
 
     client = new Client({
         puppeteer: {
@@ -21,96 +21,96 @@ async function initializeClientOne(authen = false) {
     
     if (authen) { //reconnecting
         client.on('authenticated', () => {
-            logger.info('Client on service one successfully authenticated');
+            logger.info('Client on service two successfully authenticated');
         });
         
         
         client.on('auth_failure', msg => {
             // Fired if session restore was unsuccessful
-            logger.error('AUTHENTICATION FAILURE ON SERVICE ONE', msg);
+            logger.error('AUTHENTICATION FAILURE ON SERVICE two', msg);
         });
     }
     client.on('ready', () => {
         try {
-            logger.info('Client is ready on service one!');
+            logger.info('Client is ready on service two!');
         } catch (error) {
-            logger.error('FAIL CLIENT READY ON SERVICE ONE:', error);
+            logger.error('FAIL CLIENT READY ON SERVICE two:', error);
         }
     });
 
     
     client.on('disconnected', async (reason) => {
         await client.destroy() .then(response => {
-            logger.info('Client on service one was logged out', reason);
+            logger.info('Client on service two was logged out', reason);
         })
         .catch(error => {
-            logger.error(`FAILED TO DESTROY CLIENT ON SERVICE ONE: ${error.message}`);
+            logger.error(`FAILED TO DESTROY CLIENT ON SERVICE two: ${error.message}`);
         });
-        await initializeClientOne();
+        await initializeClienttwo();
     });
 
 }
 
-async function startAuthenticationOne(req, res) {// generate code qr
+async function startAuthenticationtwo(req, res) {// generate code qr
     if (!client) {
-        await initializeClientOne(true, false);
+        await initializeClienttwo(false);
         client.on('qr', qr => {
             try {
                 qrcode.generate(qr, { small: true });
                 logger.info('Generate again qr code')
             } catch (error) {
-                logger.error('FAIL GENERATE QR ON SERVICE ONE!', error);
+                logger.error('FAIL GENERATE QR ON SERVICE two!', error);
             }
         });
         client.initialize();
         const successMessage = {
             status: 'success',
             data : null,
-            message: `Please check your console for the QR code service one to scan #1.....`
+            message: `Please check your console for the QR code service two to scan #1.....`
         };
         res.status(200).send(successMessage);
-        logger.info(`Please check your console for the QR code service one to scan #1.....`);
+        logger.info(`Please check your console for the QR code service two to scan #1.....`);
 
     } else {
 
         if (!client.info) {// antisipasi jika logout dari hp, karena disconnect destroy(), hanya menghilangkan client info, bukan client secara keseluruhan
-            // console.log(client)
-            await initializeClientOne(false);
+            // console.log(client) 
+            await initializeClienttwo(false);
             client.on('qr', qr => {
                 try {
                     qrcode.generate(qr, { small: true });
                     logger.info('Generate again qr code #2')
                 } catch (error) {
-                    logger.error('FAIL GENERATE QR ON SERVICE ONE  #2!', error);
+                    logger.error('FAIL GENERATE QR ON SERVICE two  #2!', error);
                 }
             });
             client.initialize();
             const successMessage = {
                 status: 'success',
                 data : null,
-                message: `Please check your console for the QR code service one to scan #2.....`
+                message: `Please check your console for the QR code service two to scan #2.....`
             };
             res.status(200).send(successMessage);
-            logger.info(`Please check your console for the QR code service one to scan #2.....`);
+            logger.info(`Please check your console for the QR code service two to scan #2.....`);
         }else{
             const successMessage = {
                 status: 'success',
                 data : null,
-                message: `Client is already initialized on service one, No need to generate QR code again.`
+                message: `Client is already initialized on service two, No need to generate QR code again.`
             };
             res.status(200).send(successMessage);
-            logger.info(`Client is already initialized on service one, No need to generate QR code again.`);
+            logger.info(`Client is already initialized on service two, No need to generate QR code again.`);
         }
     }
 }
 
-async function getClientInfoOne(req, res) {//cek info login
+async function getClientInfotwo(req, res) {//cek info login
     logger.info(client.info)
     if (!client.info) {
         const errorMessage = {
             status: 'fail',
             data : null,
-            message: `Not login service one.`
+            message: `Not login service two.`
         };
         res.status(400).send(errorMessage);
         logger.warn(`Response: ${JSON.stringify(errorMessage)}`);
@@ -118,7 +118,7 @@ async function getClientInfoOne(req, res) {//cek info login
         const successMessage = {
             status: 'success',
             data : client.info,
-            message: `Already login service one.`
+            message: `Already login service two.`
         };
         res.status(200).send(successMessage);
         logger.warn(`Response: ${JSON.stringify(successMessage, null, 2)}`);
@@ -128,19 +128,19 @@ async function getClientInfoOne(req, res) {//cek info login
 async function getReconnecting(req, res) {//reconnecting
     logger.info(JSON.stringify(client.info, null, 2))
     if (!client.info) {
-        await initializeClientOne(true);
+        await initializeClienttwo(true);
         client.initialize();
         logger.info('Reconnecting.....');
         res.send('Reconnecting.....');
     } else {
-        logger.info('Already connect before service one.');
-        res.send('Already connect before service one.');
+        logger.info('Already connect before service two.');
+        res.send('Already connect before service two.');
     }
 }
 
 
 
-async function sendWaServiceOne(req, res) {
+async function sendWaServicetwo(req, res) {
     const { no_hp, isi_pesan, fileOrImageUrl } = req.body;
 
     let resMsg = '';
@@ -167,7 +167,7 @@ async function sendWaServiceOne(req, res) {
     }
 
     if (valid === 0) {
-        logger.error('failed request send message on service one', resMsg)
+        logger.error('failed request send message on service two', resMsg)
         return res.status(400).json({ error: resMsg });
     }
 
@@ -189,7 +189,7 @@ async function sendWaServiceOne(req, res) {
             const successMessage = {
                 status: 'success',
                 data: { id, body, type, from, to },
-                message: `Message sent successfully to ${no_hp} on service one.`
+                message: `Message sent successfully to ${no_hp} on service two.`
             };
             res.status(200).json(successMessage);
             logger.info(`Response: ${JSON.stringify(successMessage, null, 2)}`);
@@ -198,7 +198,7 @@ async function sendWaServiceOne(req, res) {
             const errorMessage = {
                 status: 'error',
                 data : null,
-                message: `Failed to send message: ${error.message} on service one`
+                message: `Failed to send message: ${error.message} on service two`
             };
             res.status(500).send(errorMessage);
             logger.error(`Response: ${JSON.stringify(errorMessage, null, 2)}`);
@@ -206,8 +206,8 @@ async function sendWaServiceOne(req, res) {
 }
 
 module.exports = {
-    startAuthenticationOne,
-    getClientInfoOne,
-    sendWaServiceOne,
+    startAuthenticationtwo,
+    getClientInfotwo,
+    sendWaServicetwo,
     getReconnecting,
 };
