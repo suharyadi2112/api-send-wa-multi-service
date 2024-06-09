@@ -17,7 +17,7 @@ app.post('/two/send-service', sendWaServicetwo)
 //reconnecting wa
 app.get('/two/recon-service', getReconnecting)
 
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 3002;
 
 app.listen(PORT, () => {
     logger.info(`Service 2 (two) is running on port ${PORT}`);
