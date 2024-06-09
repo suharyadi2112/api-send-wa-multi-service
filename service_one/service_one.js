@@ -4,7 +4,7 @@ const logger = require('../config/logger');//log
 
 let client = false;
 
-async function initializeClientOne(qrr = false, authen = false) {
+async function initializeClientOne(authen = false) {
 
     client = new Client({
         puppeteer: {
@@ -38,16 +38,6 @@ async function initializeClientOne(qrr = false, authen = false) {
         }
     });
 
-    if (qrr) { //generate qr
-        client.on('qr', qr => {
-            try {
-                qrcode.generate(qr, { small: true });
-                logger.info('Generate again qr code')
-            } catch (error) {
-                logger.error('FAIL GENERATE QR ON SERVICE ONE!', error);
-            }
-        });
-    }
     
     client.on('disconnected', async (reason) => {
         await client.destroy() .then(response => {
@@ -64,18 +54,50 @@ async function initializeClientOne(qrr = false, authen = false) {
 async function startAuthenticationOne(req, res) {// generate code qr
     if (!client) {
         await initializeClientOne(true, false);
+        client.on('qr', qr => {
+            try {
+                qrcode.generate(qr, { small: true });
+                logger.info('Generate again qr code')
+            } catch (error) {
+                logger.error('FAIL GENERATE QR ON SERVICE ONE!', error);
+            }
+        });
         client.initialize();
-        logger.info('Please check your console for the QR code service one to scan.....');
-        res.send('Please check your console for the QR code service one to scan.....');
+        const successMessage = {
+            status: 'success',
+            data : null,
+            message: `Please check your console for the QR code service one to scan #1.....`
+        };
+        res.status(200).send(successMessage);
+        logger.info(`Please check your console for the QR code service one to scan #1.....`);
+
     } else {
+
         if (!client.info) {// antisipasi jika logout dari hp, karena disconnect destroy(), hanya menghilangkan client info, bukan client secara keseluruhan
-            await initializeClientOne(true, false);
-            client.initialize();
-            logger.info('Please check your console for the QR code service one to scan.....');
-            res.send('Please check your console for the QR code service one to scan.....');
+            // console.log(client)
+            client.on('qr', qr => {
+                try {
+                    qrcode.generate(qr, { small: true });
+                    logger.info('Generate again qr code #2')
+                } catch (error) {
+                    logger.error('FAIL GENERATE QR ON SERVICE ONE  #2!', error);
+                }
+            });
+            const successMessage = {
+                status: 'success',
+                data : null,
+                message: `Please check your console for the QR code service one to scan #2.....`
+            };
+            res.status(200).send(successMessage);
+            logger.info(`Please check your console for the QR code service one to scan #2.....`);
         }else{
-            logger.info('Client is already initialized');
-            res.send('Client already initialized. No need to generate QR code again.');
+            const successMessage = {
+                status: 'success',
+                data : null,
+                message: `Client is already initialized, No need to generate QR code again.`
+            };
+            res.status(200).send(successMessage);
+            logger.info(`Client is already initialized, No need to generate QR code again.`);
         }
     }
 }
@@ -83,18 +105,28 @@ async function startAuthenticationOne(req, res) {// generate code qr
 async function getClientInfoOne(req, res) {//cek info login
     logger.info(client.info)
     if (!client.info) {
-        logger.warn('Not login service one');
-        res.send('Not login service one');
+        const errorMessage = {
+            status: 'fail',
+            data : null,
+            message: `Not login service one.`
+        };
+        res.status(400).send(errorMessage);
+        logger.warn(`Response: ${JSON.stringify(errorMessage)}`);
     } else {
-        logger.info('Already login service one.');
-        res.send('Already login service one.');
+        const successMessage = {
+            status: 'success',
+            data : client.info,
+            message: `Already login service one.`
+        };
+        res.status(200).send(successMessage);
+        logger.warn(`Response: ${JSON.stringify(successMessage, null, 2)}`);
     }
 }
 
 async function getReconnecting(req, res) {//reconnecting
-    logger.info(client.info)
+    logger.info(JSON.stringify(client.info, null, 2))
     if (!client.info) {
-        await initializeClientOne(false, true);
+        await initializeClientOne(true);
         client.initialize();
         logger.warn('Reconnecting.....');
         res.send('Reconnecting.....');
@@ -138,26 +170,35 @@ async function sendWaServiceOne(req, res) {
     }
 
     const chatId = req.body.no_hp.substring(1) + '@c.us'; // wajib +62 kayanya
-
-    logger.info(req.body, "payload pesan");
-
     if (!client.info) {
-        logger.warn('WhatsApp client is not initialized');
-        return res.status(500).send('WhatsApp client is not initialized');
+        const errorMessage = {
+            status: 'fail',
+            data : req.body,
+            message: `WhatsApp client is not initialized`
+        };
+        res.status(400).send(errorMessage);
+        logger.warn(`Response: ${JSON.stringify(errorMessage, null, 2)}`);
+        return
     }
 
     await client.sendMessage(chatId, isi_pesan)
         .then(response => {
-            res.status(200).json({
+            const successMessage = {
                 status: 'success',
                 data: req.body,
-                message: 'Message sent successfully to ${no_hp} on service one.'
-            });
-            logger.info(`Message sent successfully to ${no_hp} on service one`);
+                message: `Message sent successfully to ${no_hp} on service one.`
+            };
+            res.status(200).json(successMessage);
+            logger.info(`Response: ${JSON.stringify(successMessage, null, 2)}`);
         })
         .catch(error => {
-            res.status(500).send(`Failed to send message: ${error.message} on service one`);
-            logger.error(`Failed to send message: ${error.message} on service one`);
+            const errorMessage = {
+                status: 'error',
+                data : req.body,
+                message: `Failed to send message: ${error.message} on service one`
+            };
+            res.status(500).send(errorMessage);
+            logger.error(`Response: ${JSON.stringify(errorMessage, null, 2)}`);
         });
 }
 
