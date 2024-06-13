@@ -9,7 +9,7 @@ async function initializeClientthree(authen = false) {
     client = new Client({
         puppeteer: {
             headless: true,
-            executablePath: '/usr/bin/chromium-browser', // Uncomment for Ubuntu server
+            // executablePath: '/usr/bin/chromium-browser', // Uncomment for Ubuntu server
             args: ['--no-sandbox', '--disable-setuid-sandbox']
         },
         authStrategy: new LocalAuth({
