@@ -3,11 +3,12 @@ const bodyParser = require('body-parser');
 const {startAuthenticationOne, getClientInfoOne, sendWaServiceOne, getReconnecting} = require('./service_one');
 const logger = require('../config/logger');//log
 const { generateToken, authenticateToken } = require('../config/jwtoken');
+const { limiter } = require('../config/ratelimiter');
 
 const app = express();
 app.use(bodyParser.json());
 
-app.post('/one/login', (req, res) => {
+app.post('/one/login', limiter, (req, res) => {
     const { username, password } = req.body;
     if (username === 'suharyadi' && password === 'ganteng') {
         const token = generateToken({ username });
@@ -21,13 +22,13 @@ app.post('/one/login', (req, res) => {
 });
 
 // Endpoint cek status login
-app.get('/one/status-service',authenticateToken, getClientInfoOne);
+app.get('/one/status-service',authenticateToken, limiter, getClientInfoOne);
 // Endpoint untuk menghasilkan QR code
-app.get('/one/generate-qr-service',authenticateToken, startAuthenticationOne);
+app.get('/one/generate-qr-service',authenticateToken, limiter, startAuthenticationOne);
 // Endpoint untuk kirim pesan pada service one
-app.post('/one/send-service',authenticateToken, sendWaServiceOne)
+app.post('/one/send-service',authenticateToken, limiter, sendWaServiceOne)
 // reconnecting wa
-app.get('/one/recon-service',authenticateToken, getReconnecting)
+app.get('/one/recon-service',authenticateToken, limiter, getReconnecting)
 
 const PORT = process.env.PORT || 3001;
 
