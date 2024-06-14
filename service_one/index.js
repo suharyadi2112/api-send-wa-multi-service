@@ -11,8 +11,11 @@ app.post('/one/login', (req, res) => {
     const { username, password } = req.body;
     if (username === 'suharyadi' && password === 'ganteng') {
         const token = generateToken({ username });
+        
+        logger.info(`Successfully sign for ${username}`); 
         return res.json({ token });
     } else {
+        logger.warn(`Invalid credentials ${username}`); 
         return res.status(401).json({ message: 'Invalid credentials' });
     }
 });
@@ -25,19 +28,6 @@ app.get('/one/generate-qr-service',authenticateToken, startAuthenticationOne);
 app.post('/one/send-service',authenticateToken, sendWaServiceOne)
 // reconnecting wa
 app.get('/one/recon-service',authenticateToken, getReconnecting)
-
-
-// ------------------- jwt section -----------------//
-app.use((err, req, res, next) => {
-    if (err.name === 'TokenExpiredError') {
-        logger.info(`Token on service one expired`);
-        return res.status(401).json({ message: 'Token expired' });
-    }
-    
-    logger.info(`Terjadi kesalahan di service one ${err}`);
-    return res.status(403).json({ message: err });
-});
-
 
 const PORT = process.env.PORT || 3001;
 
