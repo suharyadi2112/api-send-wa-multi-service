@@ -19,6 +19,7 @@ const generateToken = (user) => {
 
 const authenticateToken = (req, res, next) => {
     const authHeader = req.headers['authorization'];
+    logger.info(authHeader,"lihat header"); 
     const token = authHeader && authHeader.split(' ')[1];
 
     if (!token) {
