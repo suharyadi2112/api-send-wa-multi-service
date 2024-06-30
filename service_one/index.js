@@ -1,6 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const {startAuthenticationOne, getClientInfoOne, sendWaServiceOne, getReconnecting} = require('./service_one');
+const {sendWaServiceBackup} = require('../service_backup');
 const logger = require('../config/logger');//log
 const { generateToken, authenticateToken } = require('../config/jwtoken');
 const { limiter } = require('../config/ratelimiter');
@@ -26,7 +27,12 @@ app.get('/one/status-service',authenticateToken, limiter, getClientInfoOne);
 // Endpoint untuk menghasilkan QR code
 app.get('/one/generate-qr-service',authenticateToken, limiter, startAuthenticationOne);
 // Endpoint untuk kirim pesan pada service one
+
+//service wa backup matikan jika service biasa rusak
 app.post('/one/send-service',authenticateToken, limiter, sendWaServiceOne)
+// app.post('/one/send-service', limiter, sendWaServiceBackup)
+
+
 // reconnecting wa
 app.get('/one/recon-service',authenticateToken, limiter, getReconnecting)
 
