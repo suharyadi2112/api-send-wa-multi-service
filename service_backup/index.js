@@ -33,7 +33,7 @@ async function sendWaServiceBackup(req, res) {
     }
 
     let data = JSON.stringify({
-        "api_key": "9e5cbe9ea11a99331f5b1ad0076f01e2e838cd72",
+        "api_key": "apikey",
         "receiver": req.body.no_hp.substring(1),
         "data": {
         "message": isi_pesan
