@@ -85,10 +85,20 @@ async function sendMessage(pesan) {
                 if (error) {
                     logger.error('Gagal mengupdate status', error);
                 } else {
-                    logger.error(`Pesan berhasil dikirim dengan id pesan: ${pesan.id_outbox}`);
+                    logger.info(`Pesan berhasil dikirim dengan id pesan: ${pesan.id_outbox}`);
                 }
             });
         } else {
+
+            const deleteQuery = `DELETE FROM outbox_rat WHERE id_outbox = ?`;
+            connection.query(deleteQuery, [pesan.id_outbox], (error, results) => {
+                if (error) {
+                    logger.error('Gagal menghapus pesan', error);
+                } else {
+                    logger.info(`Pesan berhasil dihapus karena gagal dengan id pesan: ${pesan.id_outbox}`);
+                }
+            });
+
             logger.error(`Gagal mengirim pesan: ${responseData.message}, ${pesan.id_outbox}`);
         }
 
