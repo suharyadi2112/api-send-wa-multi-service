@@ -32,16 +32,6 @@ function fetchMessages() {
     });
 }
 
-const apiKeys = ['lala', 'lili', 'lulu'];
-let currentIndex = 0;
-
-function getNextApiKey() {
-    const selectedApiKey = apiKeys[currentIndex];
-    currentIndex = (currentIndex + 1) % apiKeys.length;
-    return selectedApiKey;
-}
-
-
 // Proses pengiriman pesan
 async function sendMessage(pesan) {
     try {
@@ -60,11 +50,13 @@ async function sendMessage(pesan) {
             }            
         }
 
-        const apiKey = getNextApiKey();
-        console.log(apiKey); // Ini akan mencetak API key yang berbeda setiap 3 detik
+        // Kirim pesan menggunakan API eksternal (contoh menggunakan fetch)
+        const apiKeys = ['tes','tes'];
+     
+        const selectedApiKey = apiKeys[Math.floor(Math.random() * apiKeys.length)];
 
         const body = {
-            api_key: apiKey,
+            api_key: selectedApiKey,
             // receiver: pesan.destination,
             receiver: fixHp,
             data: {
