@@ -32,6 +32,16 @@ function fetchMessages() {
     });
 }
 
+const apiKeys = ['lala', 'lili', 'lulu'];
+let currentIndex = 0;
+
+function getNextApiKey() {
+    const selectedApiKey = apiKeys[currentIndex];
+    currentIndex = (currentIndex + 1) % apiKeys.length;
+    return selectedApiKey;
+}
+
+
 // Proses pengiriman pesan
 async function sendMessage(pesan) {
     try {
@@ -50,13 +60,11 @@ async function sendMessage(pesan) {
             }            
         }
 
-        // Kirim pesan menggunakan API eksternal (contoh menggunakan fetch)
-        const apiKeys = ['tes','tes'];
-     
-        const selectedApiKey = apiKeys[Math.floor(Math.random() * apiKeys.length)];
+        const apiKey = getNextApiKey();
+        console.log(apiKey); // Ini akan mencetak API key yang berbeda setiap 3 detik
 
         const body = {
-            api_key: selectedApiKey,
+            api_key: apiKey,
             // receiver: pesan.destination,
             receiver: fixHp,
             data: {
@@ -78,7 +86,7 @@ async function sendMessage(pesan) {
         const status = responseData.status;
         // const status = true;
         if (status === true) {
-            // Jika pengiriman sukses, update status menjadi 1 di database
+            // Jika pengiriman sukses, update status di database
 
             const updateQuery = `UPDATE outbox_rat SET status = 222 WHERE id_outbox = ?`;
             connection.query(updateQuery, [pesan.id_outbox], (error, results) => {
