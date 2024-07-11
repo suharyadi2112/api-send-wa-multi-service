@@ -92,19 +92,26 @@ async function sendMessage(pesan) {
             const updateQuery = `UPDATE outbox SET status = 1 WHERE id_outbox = ?`;
             connection.query(updateQuery, [pesan.id_outbox], (error, results) => {
                 if (error) {
-                    logger.error('Gagal mengupdate status', error);
+                    logger.error('Gagal mengupdate status 1', error);
                 } else {
                     logger.info(`Pesan berhasil dikirim dengan id pesan: ${pesan.id_outbox}`);
                 }
             });
         } else {
 
-            const updateFailQuery = `UPDATE outbox SET status = 2 WHERE id_outbox = ?`;
+            // const updateFailQuery = `UPDATE outbox SET status = 2 WHERE id_outbox = ?`;
+            const updateFailQuery = `
+                UPDATE outbox 
+                SET 
+                    status = 2,
+                    msg_error = '${responseData.message}'
+                WHERE id_outbox = ?
+            `;
             connection.query(updateFailQuery, [pesan.id_outbox], (error, results) => {
                 if (error) {
-                    logger.error('Gagal menghapus pesan', error);
+                    logger.error('Gagal mengupdate status 2', error);
                 } else {
-                    logger.info(`Pesan berhasil dihapus karena gagal dengan id pesan: ${pesan.id_outbox}`);
+                    logger.info(`Status pesan berhasil diupdate 2 karena gagal dengan id pesan: ${pesan.id_outbox}`);
                 }
             });
 
