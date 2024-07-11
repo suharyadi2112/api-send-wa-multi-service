@@ -77,6 +77,7 @@ async function sendMessage(pesan) {
         // Periksa status pengiriman
         const status = responseData.status;
         // const status = true;
+        console.log(fixHp)
         if (status === true) {
             // Jika pengiriman sukses, update status di database
 
