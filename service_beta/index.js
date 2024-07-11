@@ -21,7 +21,15 @@ const connection = mysql.createConnection(dbConfig);
 // Fungsi untuk mengambil pesan dari database
 function fetchMessages() {
     return new Promise((resolve, reject) => {
-        const query = `SELECT * FROM outbox WHERE status = 0 AND application = 'kliksardjitootp' ORDER BY insertDateTime ASC LIMIT 1`;
+        const query = `
+            SELECT * 
+            FROM outbox 
+            WHERE status = 0 
+                AND (application = 'kliksardjitootp' OR application = 'simetris.rss') 
+            ORDER BY insertDateTime ASC 
+            LIMIT 1
+        `;
+
         connection.query(query, (error, results) => {
             if (error) {
                 reject(error);
@@ -91,8 +99,8 @@ async function sendMessage(pesan) {
             });
         } else {
 
-            const deleteQuery = `DELETE FROM outbox WHERE id_outbox = ?`;
-            connection.query(deleteQuery, [pesan.id_outbox], (error, results) => {
+            const updateFailQuery = `UPDATE outbox SET status = 2 WHERE id_outbox = ?`;
+            connection.query(updateFailQuery, [pesan.id_outbox], (error, results) => {
                 if (error) {
                     logger.error('Gagal menghapus pesan', error);
                 } else {
