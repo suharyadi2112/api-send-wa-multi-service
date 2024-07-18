@@ -3,6 +3,8 @@ const fetch = require('node-fetch');
 const mysql = require('mysql2');
 const logger = require('../config/logger');//log
 const app = express();
+const fs = require('fs');
+const path = require('path');
 
 // Middleware untuk mengizinkan body JSON
 app.use(express.json());
@@ -23,9 +25,9 @@ function fetchMessages() {
     return new Promise((resolve, reject) => {
         const query = `
             SELECT * 
-            FROM outbox 
+            FROM outbox_rat 
             WHERE status = 0 
-                AND (application = 'kliksardjitootp' OR application = 'simetris.rss') 
+                AND (application = 'kliksardjitootp' OR application = 'simetris.rss' OR application = 'Dokumen SKDP') 
             ORDER BY insertDateTime ASC 
             LIMIT 1
         `;
@@ -44,6 +46,12 @@ function fetchMessages() {
 async function sendMessage(pesan) {
     try {
 
+        if (pesan.application == "Dokumen SKDP") {
+            getFilePdf(pesan.file)
+            console.log(pesan.application)
+        }
+        return
+
         let fixHp = ""
         if (!pesan.destination) {
             logger.error(`No Hp harus Diisi : ${pesan.id_outbox}. `);
@@ -59,7 +67,7 @@ async function sendMessage(pesan) {
         }
 
         // Kirim pesan menggunakan API eksternal (contoh menggunakan fetch)
-        const apiKeys = ['tes','tes'];
+        const apiKeys =  ['f6c0fa22e5b01db0570295a1f9e9017ca5adf8c7','67fc2465fb2a69d63de63f9f287f93d9d170ab5f','e9876f475abc23457b7090fce985feb36f453e5d'];
      
         const selectedApiKey = apiKeys[Math.floor(Math.random() * apiKeys.length)];
 
@@ -89,7 +97,7 @@ async function sendMessage(pesan) {
         if (status === true) {
             // Jika pengiriman sukses, update status di database
 
-            const updateQuery = `UPDATE outbox SET status = 1 WHERE id_outbox = ?`;
+            const updateQuery = `UPDATE outbox_rat SET status = 1 WHERE id_outbox = ?`;
             connection.query(updateQuery, [pesan.id_outbox], (error, results) => {
                 if (error) {
                     logger.error('Gagal mengupdate status 1', error);
@@ -101,7 +109,7 @@ async function sendMessage(pesan) {
 
             // const updateFailQuery = `UPDATE outbox SET status = 2 WHERE id_outbox = ?`;
             const updateFailQuery = `
-                UPDATE outbox 
+                UPDATE outbox_rat 
                 SET 
                     status = 2,
                     msg_error = '${responseData.message}'
@@ -151,4 +159,38 @@ app.listen(2233, async () => {
 // Fungsi untuk jeda
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+
+// function get file
+function getFilePdf(pdfUrl) {
+
+    const downloadFolder = path.resolve(__dirname, 'pdff'); // Folder pdff di root proyek
+    const fileName = path.basename(new URL(pdfUrl).pathname); // Mendapatkan nama file dari URL
+    const filePath = path.join(downloadFolder, fileName);
+
+    // Middleware untuk membuat folder pdff jika belum ada
+    if (!fs.existsSync(downloadFolder)) {
+        fs.mkdirSync(downloadFolder);   
+    }
+    
+    console.log("tes")
+    const writer = fs.createWriteStream(filePath);
+
+    writer.on('finish', () => {
+        res.setHeader('Content-Type', 'application/pdf');
+
+        res.download(filePath, fileName, (err) => {
+            if (err) {
+                console.error('Gagal mengirim file:', err);
+                return err
+            } else {
+                console.log('File berhasil diunduh');
+            }
+        });
+    });
+
+    writer.on('error', (err) => {
+        console.error('Gagal menyimpan file:', err);
+    });
 }
