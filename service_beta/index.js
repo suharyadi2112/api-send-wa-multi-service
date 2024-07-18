@@ -10,12 +10,7 @@ const path = require('path');
 app.use(express.json());
 
 // Konfigurasi koneksi database MySQL
-const dbConfig = {
-    host: '192.168.0.30',
-    user: 'root',
-    password: 'S1metr1s30!',
-    database: 'simetris_wa'
-};
+
 
 // Buat koneksi ke database
 const connection = mysql.createConnection(dbConfig);
