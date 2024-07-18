@@ -67,8 +67,7 @@ async function sendMessage(pesan) {
         }
 
         // Kirim pesan menggunakan API eksternal (contoh menggunakan fetch)
-        const apiKeys =  ['f6c0fa22e5b01db0570295a1f9e9017ca5adf8c7','67fc2465fb2a69d63de63f9f287f93d9d170ab5f','e9876f475abc23457b7090fce985feb36f453e5d'];
-     
+        
         const selectedApiKey = apiKeys[Math.floor(Math.random() * apiKeys.length)];
 
         const body = {
